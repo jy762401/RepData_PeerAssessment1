@@ -1,14 +1,13 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "PA1_template"
+output: html_document
 ---
+
 ## Loading and preprocessing the data
 
 Reading the dataset is straight forward, assuming the file is in the current working directory. No initial tranforming is necessary.
 
-```{r}
+```{r,echo=TRUE}
 activity <- read.csv("./activity.csv")
 ```
 
@@ -16,13 +15,13 @@ activity <- read.csv("./activity.csv")
 
 The xtabs funciton can easily produce the total number of steps each day.
 
-```{r}
+```{r,echo=TRUE}
 xt = xtabs(steps~date,data=activity)
 head(xt)
 ```
 Below is a histogram of the total number of steps, with the mean and median reported below.
 
-```{r}
+```{r,echo=TRUE}
 hist(xt,breaks = c(seq(0,22500,2500)),col="light blue",xlab = "Steps in Bins of 2,500",main = "Total Steps per Day")
 centers = c(mean(xt),median(xt))
 names(centers) = c("Mean","Median")
@@ -31,13 +30,13 @@ centers
 ## What is the average daily activity pattern?
 
 Time series plot:
-```{r}
+```{r,echo=TRUE}
 plot(mt,type="l",ylab = "Average Steps",main = "Average Number of Steps by Interval")
 steps.interval = xtabs(steps~interval,data=activity)
 ```
 
 The interval with the most average steps:
-```{r}
+```{r,echo=TRUE}
 which.max(steps.interval)
 steps.interval[which.max(steps.interval)]
 ```
@@ -46,24 +45,24 @@ steps.interval[which.max(steps.interval)]
 ## Imputing missing values
 First, the number of values that are NA.
 
-```{r}
+```{r,echo=TRUE}
 sum(is.na(activity$steps))
 ```
 For inputing the missing values, I used the mean of each time interval, rounded to the nearest integer. the code below calculates the mean of steps by interval, mainly with the aggregate function. A new data set is created using the merge function. This adds a column where the proper mean is recorded for the given interval. Lastly, that column is rounded.
 
-```{r}
+```{r,echo=TRUE}
 mean.steps = xtabs(steps~interval,aggregate(steps~interval,activity,mean))
 activity2 = merge(activity,mean.steps,by = "interval")
 activity2[,4] = round(activity2[,4])
 ```
 The following line finds the NA values, and replaces that value with the proper rounded mean value.
-```{r}
+```{r,echo=TRUE}
 activity2$steps[which(is.na(activity2$steps))] = activity2$Freq[which(is.na(activity2$steps))]
 ```
 
 Here, the code finds the total number of steps by date for the new sata set, and the proper measures of center are calculated.
 
-```{r}
+```{r,echo=TRUE}
 xt2 = xtabs(steps~date,data=activity2)
 hist(xt2,breaks = c(seq(0,22500,2500)),col="palevioletred2",xlab = "Steps in Bins of 2,500",main = "Total Steps per Day with Substituted Values")
 
@@ -76,7 +75,7 @@ centers2
 
 To answer this question, first use the weekday function to find the correct day for the given date. Next, change the day to it's proper class (of weekday or weekend).
 
-```{r}
+```{r, echo=TRUE}
 library(lattice)
 activity2$day = weekdays(as.Date(activity2$date))
 days.set = unique(activity2$day)
@@ -87,7 +86,7 @@ activity2$day[activity2$day %in% week.ends] = "weekend"
 ```
 Make the day class as a factor, use lattice to plot each. We see that the weekend has higher overall steps in each interval, while the weekday has the highest spike. 
 
-```{r}
+```{r,echo=TRUE}
 avg.steps = aggregate(steps~interval+day,activity2,mean)
 avg.steps$day = as.factor(avg.steps$day)
 xyplot(steps ~ interval | day, data = avg.steps, layout = c(1, 2),type = "l")
